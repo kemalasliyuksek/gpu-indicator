@@ -65,6 +65,7 @@ export default class GpuIndicatorExtension extends Extension {
         this._button = null;
         this._icon = null;
         this._icons = null;
+        this._dgpuStatusPaths = null;
         this._current = null;
     }
 
