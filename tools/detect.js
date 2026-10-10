@@ -3,7 +3,7 @@
 import {detectGpu, findDgpuPowerStatusPaths, isDgpuAsleep} from '../gpu.js';
 
 const pid = Number(ARGV[0]);
-const paths = findDgpuPowerStatusPaths();
+const paths = await findDgpuPowerStatusPaths();
 print(`dGPU status files: ${paths.join(', ') || '(none)'}`);
-print(`dGPU asleep: ${isDgpuAsleep(paths)}`);
-print(`pid ${pid}: ${detectGpu(pid, paths)}`);
+print(`dGPU asleep: ${await isDgpuAsleep(paths)}`);
+print(`pid ${pid}: ${await detectGpu(pid, paths)}`);

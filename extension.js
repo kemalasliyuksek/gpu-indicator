@@ -37,8 +37,11 @@ export default class GpuIndicatorExtension extends Extension {
             [Gpu.INTEGRATED]: Gio.FileIcon.new(iconDir.get_child('gpu-integrated-symbolic.svg')),
             [Gpu.NVIDIA]: Gio.FileIcon.new(iconDir.get_child('gpu-nvidia-symbolic.svg')),
         };
-        this._dgpuStatusPaths = findDgpuPowerStatusPaths();
+        this._cancellable = new Gio.Cancellable();
+        this._dgpuStatusPaths = null;
         this._current = null;
+        this._busy = false;
+        this._refreshPending = false;
 
         this._button = new PanelMenu.Button(0.0, this.metadata.name, true);
         // An indicator without a menu: not reactive, so no hover highlight. The padding matches
@@ -59,9 +62,12 @@ export default class GpuIndicatorExtension extends Extension {
     }
 
     disable() {
+        this._cancellable.cancel();
         global.display.disconnect(this._focusHandlerId);
         GLib.source_remove(this._pollSourceId);
+        this._icon.destroy();
         this._button.destroy();
+        this._cancellable = null;
         this._button = null;
         this._icon = null;
         this._icons = null;
@@ -69,10 +75,34 @@ export default class GpuIndicatorExtension extends Extension {
         this._current = null;
     }
 
+    // Detection is asynchronous; at most one runs at a time and a request arriving meanwhile is
+    // coalesced into a single follow-up run.
     _refresh() {
+        if (this._busy) {
+            this._refreshPending = true;
+            return;
+        }
+        this._busy = true;
+        const cancellable = this._cancellable;
+        this._update(cancellable).catch(error => {
+            if (!cancellable.is_cancelled())
+                console.error(`${this.metadata.name}: ${error}`);
+        }).finally(() => {
+            if (cancellable.is_cancelled())
+                return;
+            this._busy = false;
+            if (this._refreshPending) {
+                this._refreshPending = false;
+                this._refresh();
+            }
+        });
+    }
+
+    async _update(cancellable) {
+        this._dgpuStatusPaths ??= await findDgpuPowerStatusPaths(cancellable);
         const pid = global.display.focus_window?.get_pid() ?? 0;
-        const gpu = detectGpu(pid, this._dgpuStatusPaths);
-        if (gpu === this._current)
+        const gpu = await detectGpu(pid, this._dgpuStatusPaths, cancellable);
+        if (cancellable.is_cancelled() || gpu === this._current)
             return;
         this._current = gpu;
         this._icon.gicon = this._icons[gpu];
