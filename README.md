@@ -8,6 +8,14 @@ whether the focused application is rendering on the integrated GPU or on the NVI
 
 It follows focus, so switching between windows updates the icon immediately.
 
+![Icons](docs/icons.svg)
+
+In the top bar, next to other status icons:
+
+| Integrated GPU | NVIDIA GPU |
+| --- | --- |
+| ![Top bar, integrated GPU](docs/topbar-integrated.png) | ![Top bar, NVIDIA GPU](docs/topbar-nvidia.png) |
+
 ## Requirements
 
 - GNOME Shell 50
@@ -55,6 +63,9 @@ GPU while focused. While the card is suspended each check costs one file read.
 - The NVIDIA result is an inference, not a measurement. The NVIDIA driver does not report
   per-process engine usage through DRM fdinfo, so an application that holds an NVIDIA
   context while idle is still shown as NVIDIA.
+- The icon reflects the focused application window. Shell UI that takes focus, such as the
+  screenshot tool, leaves no focused window, so the icon shows the integrated GPU while it is
+  open.
 - Only tested with the setup above. X11 sessions and Intel integrated GPUs have not been
   tried, although nothing in the detection depends on the integrated GPU vendor.
 
