@@ -1,0 +1,10 @@
+{
+  "uuid": "gpu-indicator@kemalasliyuksek.com",
+  "name": "GPU Indicator",
+  "description": "Shows in the top bar whether the focused application renders on the integrated GPU or the NVIDIA GPU of a hybrid graphics laptop.",
+  "shell-version": [
+    "50"
+  ],
+  "version-name": "0.1.0",
+  "url": "https://github.com/kemalasliyuksek/gpu-indicator"
+}
